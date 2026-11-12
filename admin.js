@@ -132,6 +132,7 @@ async function load() {
         </option>`
       ).join('');
 
+    refreshInsights();
     draw();
 
     if (role === 'owner') {
@@ -143,9 +144,40 @@ async function load() {
   }
 }
 
+
+function makeBar(label,count,max){
+  const pct=max?Math.round(count/max*100):0;
+  return '<div class="barrow"><span>'+escapeHTML(label)+'</span><div class="track"><div class="fill" style="width:'+pct+'%"></div></div><strong>'+count+'</strong></div>';
+}
+function refreshInsights(){
+  const active=new Set([...rows.map(r=>r.user_id)]);
+  $('active').textContent=active.size;
+  $('generated-at').textContent='Atualizado em '+new Date().toLocaleString('pt-BR');
+  const byActivity=new Map();
+  for(const r of rows)byActivity.set(r.activity_id,(byActivity.get(r.activity_id)||0)+1);
+  const activities=[...byActivity.entries()].sort((a,b)=>b[1]-a[1]).slice(0,8);
+  $('activity-bars').innerHTML=activities.length?activities.map(([id,n])=>makeBar((activityNames[id]||'Atividade')+' · '+id,n,activities[0][1])).join(''):'<p class="muted">Ainda não há respostas.</p>';
+  const byPerson=profiles.map(p=>({name:p.full_name||p.email||'Participante',count:rows.filter(r=>r.user_id===p.id).length})).sort((a,b)=>b.count-a.count).slice(0,8);
+  $('participant-bars').innerHTML=byPerson.length?byPerson.map(p=>makeBar(p.name,p.count,Math.max(1,byPerson[0].count))).join(''):'<p class="muted">Ainda não há participantes.</p>';
+  $('report-person').innerHTML='<option value="">Todos os participantes</option>'+profiles.map(p=>'<option value="'+escapeHTML(p.id)+'">'+escapeHTML(p.full_name||p.email||p.id)+'</option>').join('');
+}
+function exportPDF(){
+  const previous=document.title;
+  document.title='Corporate Intensive - Relatorio de Formacao';
+  const selected=$('report-person').value;
+  const p=profiles.find(p=>p.id===selected);
+  $('print-meta').textContent=(p?'Participante: '+(p.full_name||p.email)+' · ':'Turma completa · ')+'Gerado em '+new Date().toLocaleString('pt-BR')+'. Respostas registradas pela data de última atualização.';
+  document.body.classList.toggle('individual-report',!!selected);
+  window.print();
+  setTimeout(()=>{document.title=previous;document.body.classList.remove('individual-report')},1000);
+}
+$('pdf').onclick=exportPDF;
+$('report-person').onchange=draw;
+
 function filtered() {
   const query = $('search').value.toLocaleLowerCase('pt-BR');
   const activity = $('activity').value;
+  const person = $('report-person').value;
 
   return rows.filter(r => {
     const p = profiles.find(
@@ -163,7 +195,7 @@ function filtered() {
         r.response
       ]).toLocaleLowerCase('pt-BR').includes(query);
 
-    return matchesActivity && matchesQuery;
+    return matchesActivity && matchesQuery && (!person || r.user_id === person);
   });
 }
 
