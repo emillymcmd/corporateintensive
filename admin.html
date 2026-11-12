@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Admin — Corporate Intensive</title>
+  <title>Intelligence — Corporate Intensive</title>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -96,6 +96,10 @@
     .danger { background: #8e453c; }
     .small { font-size: 13px; }
     [hidden] { display: none !important; }
+    body{background:#f7f4ed}header{background:#172f26}main{max-width:1400px}.stat,.panel{border-radius:14px;box-shadow:0 8px 28px #172f2610}.stat{padding:26px}.stat strong{font-family:Georgia,serif;font-size:44px}button,input,select{border-radius:7px}
+    .insights{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:24px 0}.insight{background:white;border:1px solid #e2e0d6;border-radius:14px;padding:24px}.barrow{display:grid;grid-template-columns:minmax(80px,1fr) 2fr 36px;gap:12px;align-items:center;margin:13px 0;font-size:13px}.track{height:10px;background:#e5e9df;border-radius:20px;overflow:hidden}.fill{height:100%;background:#667953;border-radius:20px}.reportbar{display:flex;justify-content:space-between;gap:15px;align-items:center;flex-wrap:wrap;margin:24px 0}.eyebrow{font-size:11px;letter-spacing:.17em;font-weight:bold;color:#667953}.print-only{display:none}
+    @media(max-width:720px){.insights{grid-template-columns:1fr}}
+    @media print{@page{size:A4;margin:14mm}header{background:#172f26!important;color:white!important;print-color-adjust:exact;-webkit-print-color-adjust:exact}header a,header button,#owners-section,.controls,.reportbar button,#login,#report-person,#count{display:none!important}main{padding:10px 0}.print-only{display:block}.insights{break-inside:avoid}.insight{break-inside:avoid}tr{break-inside:avoid}table{font-size:10px}th,td{padding:7px}.stat{padding:12px}.stat strong{font-size:28px}}
   </style>
 </head>
 <body>
@@ -104,7 +108,7 @@
       <div style="letter-spacing:.2em;font-size:11px">
         CORPORATE INTENSIVE MÍDIAS
       </div>
-      <h1>Painel administrativo</h1>
+      <h1>Intelligence Dashboard</h1><p style="color:#cbd5c6">O impacto da formação, em dados.</p>
     </div>
     <div>
       <a href="/">Treinamento</a>
@@ -136,7 +140,7 @@
     <section id="mainview" hidden>
       <p id="role-label" class="muted"></p>
 
-      <div class="stats">
+      <div class="reportbar"><div><div class="eyebrow">CORPORATE INTENSIVE / INTELLIGENCE</div><h2>Panorama da formação</h2><p class="muted" id="generated-at"></p></div><button id="pdf" type="button">Exportar relatório em PDF</button></div><div class="print-only"><h2>Relatório executivo</h2><p id="print-meta"></p></div><div class="stats">
         <div class="stat">
           <strong id="participants">—</strong>
           Participantes
@@ -148,8 +152,8 @@
         <div class="stat">
           <strong id="slides">—</strong>
           Slides visitados
-        </div>
-      </div>
+        </div><div class="stat"><strong id="active">—</strong>Participantes ativos</div>
+      </div><div class="insights"><section class="insight"><div class="eyebrow">ENGAJAMENTO</div><h2>Respostas por atividade</h2><div id="activity-bars"></div></section><section class="insight"><div class="eyebrow">EVOLUÇÃO</div><h2>Participantes por respostas</h2><div id="participant-bars"></div></section></div>
 
       <section id="owners-section" class="panel" hidden>
         <h2>Gestão de Administradores</h2>
@@ -187,7 +191,7 @@
         </div>
       </section>
 
-      <h2>Respostas e relatórios</h2>
+      <h2>Respostas e relatórios</h2><p class="muted">O horário indica a última atualização da resposta, não necessariamente o primeiro envio.</p>
 
       <div class="controls">
         <input id="search"
@@ -195,7 +199,7 @@
         <select id="activity">
           <option value="">Todas as atividades</option>
         </select>
-        <button id="csv">Exportar CSV</button>
+        <select id="report-person"><option value="">Todos os participantes</option></select><button id="csv">Exportar CSV</button>
       </div>
 
       <p class="muted" id="count"></p>
