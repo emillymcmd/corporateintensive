@@ -1,1 +1,221 @@
-<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin — Corporate Intensive</title><style>body{margin:0;background:#f4f0e5;color:#203629;font:15px Manrope,Arial,sans-serif}header{background:#203629;color:#fff;padding:25px 5vw;display:flex;justify-content:space-between;gap:15px;align-items:center}main{max-width:1250px;margin:auto;padding:30px 5vw}h1,h2{font-family:Georgia,serif;font-weight:400}h1{font-size:38px;margin:0}button,input,select{font:inherit;padding:10px;border:1px solid #a8b09f}button{cursor:pointer;background:#60734c;color:#fff}.stats{display:flex;gap:12px;flex-wrap:wrap;margin:25px 0}.stat{background:#fff;padding:20px;min-width:180px;flex:1;border:1px solid #ddd9ca}.stat strong{font-size:32px;display:block}table{border-collapse:collapse;width:100%;background:white}th,td{border-bottom:1px solid #e5e5de;padding:12px;text-align:left;vertical-align:top}td div{max-width:450px;overflow-wrap:anywhere;white-space:pre-wrap}tr:hover{background:#f4f6ef}.controls{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}input,select{background:white;flex:1;min-width:180px}.muted{color:#64715d}#mainview[hidden],#login[hidden]{display:none}</style><header><div><div style="letter-spacing:.2em;font-size:11px">CORPORATE INTENSIVE MÍDIAS</div><h1>Painel administrativo</h1></div><div><a href="/" style="color:white">Treinamento</a> <button id="logout">Sair</button></div></header><main><section id="login"><h2>Acesso restrito</h2><p>Entre com a conta que foi autorizada como administradora.</p><form id="login-form"><input type="email" id="email" placeholder="E-mail" required><input type="password" id="pass" placeholder="Senha" required><button>Entrar</button></form><p id="login-msg"></p></section><section id="mainview" hidden><div class="stats"><div class="stat"><strong id="participants">—</strong>Participantes</div><div class="stat"><strong id="responses">—</strong>Atividades respondidas</div><div class="stat"><strong id="slides">—</strong>Slides visitados</div></div><h2>Respostas e relatórios</h2><div class="controls"><input id="search" placeholder="Buscar por pessoa, e-mail ou conteúdo"><select id="activity"><option value="">Todas as atividades</option></select><button id="csv">Exportar CSV</button></div><p class="muted" id="count"></p><div style="overflow-x:auto"><table><thead><tr><th>Participante</th><th>Atividade</th><th>Resposta</th><th>Atualizado</th></tr></thead><tbody id="rows"></tbody></table></div></section></main><script type="module" src="/admin.js"></script></html>
+
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin — Corporate Intensive</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #f4f0e5;
+      color: #203629;
+      font: 15px Arial, sans-serif;
+    }
+    header {
+      background: #203629;
+      color: white;
+      padding: 25px 5vw;
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    main {
+      max-width: 1250px;
+      margin: auto;
+      padding: 30px 5vw;
+    }
+    h1, h2 {
+      font-family: Georgia, serif;
+      font-weight: 400;
+    }
+    h1 { font-size: 36px; margin: 5px 0; }
+    button, input, select {
+      font: inherit;
+      padding: 11px;
+      border: 1px solid #a8b09f;
+      border-radius: 3px;
+    }
+    button {
+      cursor: pointer;
+      background: #60734c;
+      color: white;
+    }
+    button:disabled { opacity: .6; cursor: wait; }
+    input, select { background: white; }
+    a { color: inherit; }
+    .stats, .controls, .admin-form {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 20px 0;
+    }
+    .controls input, .controls select,
+    .admin-form input { flex: 1; min-width: 180px; }
+    .stat {
+      background: white;
+      padding: 20px;
+      min-width: 180px;
+      flex: 1;
+      border: 1px solid #ddd9ca;
+    }
+    .stat strong {
+      font-size: 32px;
+      display: block;
+      margin-bottom: 5px;
+    }
+    .panel {
+      background: white;
+      border: 1px solid #ddd9ca;
+      padding: 24px;
+      margin: 30px 0;
+    }
+    .muted { color: #64715d; }
+    .error { color: #a02d2d; }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      background: white;
+    }
+    th, td {
+      border-bottom: 1px solid #e5e5de;
+      padding: 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+    td div {
+      max-width: 450px;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+    tr:hover { background: #f4f6ef; }
+    .table-wrap { overflow-x: auto; }
+    .danger { background: #8e453c; }
+    .small { font-size: 13px; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <div style="letter-spacing:.2em;font-size:11px">
+        CORPORATE INTENSIVE MÍDIAS
+      </div>
+      <h1>Painel administrativo</h1>
+    </div>
+    <div>
+      <a href="/">Treinamento</a>
+      <button id="logout">Sair</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="login">
+      <h2>Acesso restrito</h2>
+      <p>
+        Utilize o mesmo e-mail e senha cadastrados
+        para acessar o treinamento.
+      </p>
+      <form id="login-form" class="controls">
+        <input id="email" type="email"
+          placeholder="E-mail" required>
+        <input id="pass" type="password"
+          placeholder="Senha" required>
+        <button type="submit">Entrar</button>
+      </form>
+      <p id="login-msg" class="error"></p>
+      <p class="muted">
+        Ainda não tem uma conta?
+        <a href="/">Cadastre-se no treinamento.</a>
+      </p>
+    </section>
+
+    <section id="mainview" hidden>
+      <p id="role-label" class="muted"></p>
+
+      <div class="stats">
+        <div class="stat">
+          <strong id="participants">—</strong>
+          Participantes
+        </div>
+        <div class="stat">
+          <strong id="responses">—</strong>
+          Atividades respondidas
+        </div>
+        <div class="stat">
+          <strong id="slides">—</strong>
+          Slides visitados
+        </div>
+      </div>
+
+      <section id="owners-section" class="panel" hidden>
+        <h2>Gestão de Administradores</h2>
+        <p class="muted">
+          Somente organizadores principais podem
+          conceder ou remover acessos administrativos.
+          Os administradores utilizam o mesmo login
+          e senha do treinamento.
+        </p>
+
+        <form id="admin-form" class="admin-form">
+          <input id="new-admin-email"
+            type="email"
+            placeholder="E-mail do novo administrador"
+            required>
+          <button id="add-admin" type="submit">
+            Adicionar administrador
+          </button>
+        </form>
+
+        <p id="admin-message" role="status"></p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>E-mail</th>
+                <th>Permissão</th>
+                <th>Cadastro</th>
+                <th>Ação</th>
+              </tr>
+            </thead>
+            <tbody id="admin-rows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <h2>Respostas e relatórios</h2>
+
+      <div class="controls">
+        <input id="search"
+          placeholder="Buscar pessoa, e-mail ou conteúdo">
+        <select id="activity">
+          <option value="">Todas as atividades</option>
+        </select>
+        <button id="csv">Exportar CSV</button>
+      </div>
+
+      <p class="muted" id="count"></p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Participante</th>
+              <th>Atividade</th>
+              <th>Resposta</th>
+              <th>Atualizado</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="/admin.js"></script>
+</body>
+</html>
