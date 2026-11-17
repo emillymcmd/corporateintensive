@@ -5,7 +5,14 @@ const message=document.getElementById('auth-message');
 let client, user, signup=false, lastProgress='', pending=new Set(), timer;
 if(!SUPABASE_URL.startsWith('https://')||SUPABASE_PUBLISHABLE_KEY.startsWith('COLE_')){message.textContent='Configure o Supabase no arquivo config.js antes de publicar.';form.querySelector('button[type=submit]').disabled=true;throw new Error('Supabase não configurado')}
 client=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-function fail(e){message.textContent=e?.message||String(e)}
+function fail(e){
+  const raw=e?.message||String(e);
+  const rate=/email rate limit exceeded|over_email_send_rate_limit|email.*rate limit/i.test(raw);
+  message.textContent=rate
+    ? 'O serviço de confirmação por e-mail está temporariamente no limite de envios. Seu cadastro não foi concluído. Aguarde e tente novamente mais tarde ou avise a organização.'
+    : raw;
+  message.setAttribute('role','alert');
+}
 document.getElementById('auth-toggle').onclick=()=>{signup=!signup;document.getElementById('name-label').hidden=!signup;document.getElementById('auth-submit').textContent=signup?'Cadastrar':'Entrar';document.getElementById('auth-toggle').textContent=signup?'Já tenho conta':'Criar minha conta';message.textContent=''};
 form.onsubmit=async e=>{e.preventDefault();message.textContent='Autenticando...';const email=document.getElementById('auth-email').value.trim(), password=document.getElementById('auth-password').value;const result=signup?await client.auth.signUp({email,password,options:{data:{full_name:document.getElementById('auth-name').value.trim()}}}):await client.auth.signInWithPassword({email,password});if(result.error)return fail(result.error);if(signup&&!result.data.session)message.textContent='Cadastro realizado. Confirme o e-mail recebido e faça login.';else message.textContent='';if(result.data.session)await loadUser(result.data.session.user)};
 document.getElementById('auth-reset').onclick=async()=>{const email=document.getElementById('auth-email').value.trim();if(!email){message.textContent='Informe o e-mail para recuperar a senha.';return}const {error}=await client.auth.resetPasswordForEmail(email,{redirectTo:location.origin+'/reset.html'});message.textContent=error?error.message:'Se a conta existir, enviaremos um link de recuperação.'};
